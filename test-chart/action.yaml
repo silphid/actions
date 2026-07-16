@@ -2,7 +2,6 @@ name: test-chart
 description: Performs chart tests using https://github.com/silphid/testchart, if any present in `tests` sub-dir of chart.
 
 inputs:
-
   work-dir:
     description: >
       Optional location where to perform operation. Defaults to workspace.
@@ -18,9 +17,15 @@ inputs:
     description: >
       Version of testchart to use. Uses latest version if not specified. Ex: 0.0.27
     required: false
-    
+
+  ignore:
+    description: >
+      Regex ignore patterns to pass to testchart command, one per line. Useful for ignoring specific lines in manifests, such as SHAs.
+    required: false
+    default: ""
+
 runs:
-  using: 'composite'
+  using: "composite"
 
   steps:
     - name: Determine latest version of testchart
@@ -39,7 +44,7 @@ runs:
       shell: bash
       run: |
         cd ${{ inputs.work-dir }}
-        
+
         # Install testchart
         BIN_DIR=$HOME/bin
         mkdir -p $BIN_DIR
@@ -52,8 +57,8 @@ runs:
 
         # Add ignore patterns passed as a multi-line string, if any
         while IFS= read -r line; do
-          command+=" --ignore '$line'"
-        done <<< "${{ inputs.ignore }}}"
+          [[ -n "$line" ]] && command+=" --ignore '$line'"
+        done <<< "${{ inputs.ignore }}"
 
         # Run testchart
         eval "$command"
